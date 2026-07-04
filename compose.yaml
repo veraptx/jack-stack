@@ -32,11 +32,12 @@ services:
     ports:
       - "8080:8080"
     environment:
-      ORACLE_HOST: oracle-db
-      ORACLE_PORT: 1521
-      ORACLE_SERVICE_NAME: FREEPDB1
+      DBHOST: oracle-db
+      DBPORT: 1521
+      DBSERVICENAME: FREEPDB1
       ORACLE_PWD: ${ORACLE_PASSWORD:-YourStrongPass123}
       PLSQL_GATEWAY: "true"
+      ORDS_PWD: bob
       REST_ENABLED_SQL: "true"
       FEATURE_SDW: "true"
       TZ: Europe/Paris
@@ -49,8 +50,8 @@ services:
 
 volumes:
   oracle-data:
-  ords-config:
   ords-secrets:
+  ords-config:
 
 networks:
   oracle-net:
