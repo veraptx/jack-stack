@@ -1,0 +1,57 @@
+
+services:
+  oracle-db:
+    image: gvenzl/oracle-free:23-full
+    container_name: oracle-db
+    shm_size: 1g
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:-YourStrongPass123}
+      APP_USER: appuser
+      APP_USER_PASSWORD: ${APP_USER_PASSWORD:-YourAppPass123}
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./init-scripts:/container-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - oracle-net
+
+  ords:
+    image: container-registry.oracle.com/database/ords:latest
+    container_name: oracle-ords
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      ORACLE_HOST: oracle-db
+      ORACLE_PORT: 1521
+      ORACLE_SERVICE_NAME: FREEPDB1
+      ORACLE_PWD: ${ORACLE_PASSWORD:-YourStrongPass123}
+      PLSQL_GATEWAY: "true"
+      REST_ENABLED_SQL: "true"
+      FEATURE_SDW: "true"
+      TZ: Europe/Paris
+    volumes:
+      - ords-config:/etc/ords/config
+      - ords-secrets:/opt/oracle/variables
+    restart: unless-stopped
+    networks:
+      - oracle-net
+
+volumes:
+  oracle-data:
+  ords-config:
+  ords-secrets:
+
+networks:
+  oracle-net:
+    driver: bridge
